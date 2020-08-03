@@ -11,13 +11,13 @@ func GetEnv(key string) string {
 	err := viper.ReadInConfig()
 
 	if err != nil {
-		Logger().Error(err)
+		log.Error(err)
 	}
 
 	value, ok := viper.Get(key).(string)
 
 	if !ok {
-		Logger().Error("Invalid type assertion")
+		log.Error("Invalid type assertion")
 	}
 
 	return value

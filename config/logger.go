@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var Log *logrus.Logger
+var Log logrus.Logger
 
 type WriterHook struct {
 	Writer    io.Writer
@@ -28,7 +28,8 @@ func (hook *WriterHook) Levels() []logrus.Level {
 	return hook.LogLevels
 }
 
-func InitLogger(){
+func InitLogger() 	*logrus.Logger  {
+
 	Log := logrus.New()
 	Log.SetFormatter(&logrus.JSONFormatter{})
 	Log.SetOutput(ioutil.Discard)
@@ -55,10 +56,8 @@ func InitLogger(){
 			logrus.DebugLevel,
 		},
 	})
-}
+		return Log
 
-func Logger() *logrus.Logger  {
 
-	return Log
 }
 
