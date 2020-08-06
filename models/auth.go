@@ -2,11 +2,11 @@ package models
 
 import (
 	"fmt"
+	"gin-starter/config"
 	"github.com/dgrijalva/jwt-go"
 	uuid "github.com/twinj/uuid"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -65,21 +65,7 @@ func (m AuthModel) CreateToken(email int64) (*TokenDetails, error) {
 	return td, nil
 }
 
-func (m AuthModel) CreateAuth(email string, td *TokenDetails) error {
-	at := time.Unix(td.AtExpires, 0) //converting Unix to UTC(to Time object)
-	rt := time.Unix(td.RtExpires, 0)
-	now := time.Now()
 
-	errAccess := db.GetRedis().Set(td.AccessUUID, email, at.Sub(now)).Err()
-	if errAccess != nil {
-		return errAccess
-	}
-	errRefresh := db.GetRedis().Set(td.RefreshUUID, email, rt.Sub(now)).Err()
-	if errRefresh != nil {
-		return errRefresh
-	}
-	return nil
-}
 
 //ExtractToken ...
 func (m AuthModel) ExtractToken(r *http.Request) string {
@@ -99,7 +85,7 @@ func (m AuthModel) VerifyToken(r *http.Request) (*jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(os.Getenv("ACCESS_SECRET")), nil
+		return []byte(config.GetEnvValue("ACCESS_SECRET")), nil
 	})
 	if err != nil {
 		return nil, err
@@ -132,9 +118,6 @@ func (m AuthModel) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error)
 			return nil, err
 		}
 		email :=  claims["user_id"].(string)
-		if err != nil {
-			return nil, err
-		}
 		return &AccessDetails{
 			AccessUUID: accessUUID,
 			Email:email,
@@ -143,21 +126,4 @@ func (m AuthModel) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error)
 	return nil, err
 }
 
-//FetchAuth ...
-func (m AuthModel) FetchAuth(authD *AccessDetails) (int64, error) {
-	userid, err := db.GetRedis().Get(authD.AccessUUID).Result()
-	if err != nil {
-		return 0, err
-	}
-	userID, _ := strconv.ParseInt(userid, 10, 64)
-	return userID, nil
-}
 
-//DeleteAuth ...
-func (m AuthModel) DeleteAuth(givenUUID string) (int64, error) {
-	deleted, err := db.GetRedis().Del(givenUUID).Result()
-	if err != nil {
-		return 0, err
-	}
-	return deleted, nil
-}
