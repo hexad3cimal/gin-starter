@@ -32,7 +32,7 @@ type Token struct {
 
 type AuthModel struct{}
 
-func (m AuthModel) CreateToken(email int64) (*TokenDetails, error) {
+func (m AuthModel) CreateToken(email string) (*TokenDetails, error) {
 
 	td := &TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
