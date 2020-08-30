@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"gin-starter/config"
 	"gin-starter/models"
-	"net/http"
-	"strconv"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type AuthController struct{}
@@ -38,27 +36,23 @@ func (ctl AuthController) Refresh(c *gin.Context) {
 
 	//verify the token
 	token, err := jwt.Parse(tokenForm.RefreshToken, func(token *jwt.Token) (interface{}, error) {
-		//Make sure that the token method confirm to "SigningMethodHMAC"
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(config.GetEnvValue("REFRESH_SECRET")), nil
 	})
-	//if there is an error, the token must have expired
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}
-	//is token valid?
 	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}
-	//Since token is valid, get the uuid:
-	claims, ok := token.Claims.(jwt.MapClaims) //the token claims should conform to MapClaims
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
-		userID, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
-		if err != nil {
+		userID := fmt.Sprintf("%.f", claims["user_id"])
+		if userID == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 			return
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"gin-starter/config"
+	"gin-starter/controllers"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/twinj/uuid"
@@ -38,5 +39,13 @@ func main() {
 	router.Use(generateContextId())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	config.InitDB()
-
+	v1 := router.Group("/v1")
+	{
+		user := new(controllers.Api)
+		v1.POST("/user/login", user.Login)
+		v1.POST("/user/register", user.Register)
+		auth := new(controllers.AuthController)
+		v1.POST("/token/refresh", auth.Refresh)
+	}
+	router.Run(":" + config.GetEnvValue("port"))
 }
