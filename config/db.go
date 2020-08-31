@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/jinzhu/gorm"
-
 )
 
 var DB *gorm.DB
@@ -15,7 +14,6 @@ func InitDB(){
 		DB = db
 	}
 	log.Error("Db failure")
-
 }
 
 func GetDB() *gorm.DB {
